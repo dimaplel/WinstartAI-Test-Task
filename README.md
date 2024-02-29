@@ -1,0 +1,1 @@
+# WINSTARS.AI Test Task
