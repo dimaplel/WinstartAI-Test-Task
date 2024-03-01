@@ -1,7 +1,7 @@
 import numpy as np
 
 
-# Helper function to decode an rl-encoded mask to flat indices
+# Helper function to decode a rl-encoded mask to flat indices
 def decode_mask(mask, shape):
     mask_split = mask.split()
     starts, lengths = [np.array(x, dtype=int) for x in (mask_split[0::2], mask_split[1::2])]
@@ -27,4 +27,3 @@ def undersample(series, sample_size=1000):
         return series.sample(min(series.shape[0], sample_size // 2), replace=True)
 
     return series.sample(min(series.shape[0], sample_size), replace=True)
-

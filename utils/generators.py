@@ -56,8 +56,8 @@ def create_aug_gen(gen, seed=None):
 
 # Generator for predictions
 def create_pred_gen(test_dir, img, model):
-    img_path = os.path.join(test_dir,img)
-    img = imread(img_path)
+    img_path = os.path.join(test_dir, img)
+    img = imread(img_path)[::img_scale[0], ::img_scale[1]]
     img = expand_dims(img, axis=0)
     pred = model.predict(img)
     pred = np.squeeze(pred, axis=0)

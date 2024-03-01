@@ -16,7 +16,7 @@ def encoding_block(input, filters, drop_rate):
 
 
 # Decoding block for U-Net architecture
-def decoder_block(input, processed, filters, drop_rate):
+def decoding_block(input, processed, filters, drop_rate):
     x = layers.Conv2DTranspose(filters, (2, 2), strides=(2, 2), padding='same')(input)
     x = layers.Concatenate()([x, processed])
     return conv_block(x, filters, drop_rate)
@@ -26,17 +26,21 @@ def decoder_block(input, processed, filters, drop_rate):
 def unet(pretrained_weights=None, input_size=(256, 256, 3)):
     inputs = layers.Input(input_size)
 
+    # The first half of U, containing with encoding blocks, which compress images and extract features
     s1, p1 = encoding_block(inputs, 16, 0.1)
     s2, p2 = encoding_block(p1, 32, 0.1)
     s3, p3 = encoding_block(p2, 64, 0.2)
     s4, p4 = encoding_block(p3, 128, 0.2)
 
+    # Bridge in the bottom
     b = conv_block(p4, 256, 0.3)
 
-    d1 = decoder_block(b, s4, 128, 0.2)
-    d2 = decoder_block(d1, s3, 64, 0.2)
-    d3 = decoder_block(d2, s2, 32, 0.1)
-    d4 = decoder_block(d3, s1, 16, 0.1)
+    # The second half of U, having decoding blocks, which are passed with outputs from previous layers
+    # and from decoding blocks
+    d1 = decoding_block(b, s4, 128, 0.2)
+    d2 = decoding_block(d1, s3, 64, 0.2)
+    d3 = decoding_block(d2, s2, 32, 0.1)
+    d4 = decoding_block(d3, s1, 16, 0.1)
 
     outputs = layers.Conv2D(1, (1, 1), padding="same", activation='sigmoid')(d4)
 

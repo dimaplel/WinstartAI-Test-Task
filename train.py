@@ -7,10 +7,9 @@ from sklearn.model_selection import train_test_split
 
 from utils.utils import undersample
 from utils.generators import create_gen, create_aug_gen
-from utils.metrics import DiceBCELoss, dice_coef
+from utils.metrics import DiceLoss, dice_coef
 from utils.model_build import unet
-from config import base_dir, train_dir, test_dir, batch_size, validation_batch, model_path, steps, epochs
-
+from config import base_dir, train_dir, test_dir, batch_size, validation_batch, weights_path, model_path, steps, epochs
 
 # Listing training and testing files
 train_files = os.listdir(train_dir)
@@ -48,15 +47,21 @@ X_val, y_val = next(create_gen(val_df, validation_batch))
 print(X_val.shape, y_val.shape)
 
 # Creating segmentation model
-model = unet()
+model = unet()  # Alternatively, model = unet(weights_path) for pretrained weights
 
-# Checkpoint for saving model on best validation dice coefficient
-checkpoint = ModelCheckpoint(model_path,
-                             monitor='val_dice_coef',
-                             verbose=1,
-                             mode='max',
-                             save_weights_only=True,
-                             save_best_only=True)
+# Checkpoint for saving model's weight on best validation dice coefficient score
+weights_checkpoint = ModelCheckpoint(weights_path,
+                                     monitor='val_dice_coef',
+                                     verbose=1,
+                                     mode='max',
+                                     save_weights_only=True,
+                                     save_best_only=True)
+# Checkpoint for saving model on best validation dice coefficient score
+model_checkpoint = ModelCheckpoint(weights_path,
+                                   monitor='val_dice_coef',
+                                   verbose=1,
+                                   mode='max',
+                                   save_best_only=True)
 # Checkpoint for reducing learning rate on not improving validation metric
 reduceLR = ReduceLROnPlateau(monitor='val_dice_coef',
                              factor=0.2,
@@ -71,10 +76,10 @@ early = EarlyStopping(monitor='val_dice_coef',
                       mode="max",
                       patience=20)
 
-callbacks_list = [checkpoint, early, reduceLR]
+callbacks_list = [weights_checkpoint, model_checkpoint, early, reduceLR]
 
-# Compiling model with Adam optimizer, DiceDCE as loss and dice coefficient as metric
-model.compile(optimizer=Adam(1e-3), loss=DiceBCELoss, metrics=[dice_coef])
+# Compiling model with Adam optimizer, DiceLoss as loss and dice coefficient as metric
+model.compile(optimizer=Adam(1e-3), loss=DiceLoss, metrics=[dice_coef])
 
 # Defining steps count
 step_count = min(steps, train_df.shape[0] // batch_size)

@@ -3,6 +3,7 @@ base_dir = 'dataset/'
 train_dir = base_dir + 'train_v2/'
 test_dir = base_dir + 'test_v2/'
 model_path = "models/{}_model_v1.h5".format('unet')
+weights_path = "models/{}_weights_v1.h5".format('unet')
 
 # Model parametes
 batch_size = 48
